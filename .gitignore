@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+*.DS_Store
+
+# Obsidian
+.obsidian/workspace.json
+.obsidian/*.json
+
+# Images (too large for git)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.zip
+
+# OS
+Thumbs.db
