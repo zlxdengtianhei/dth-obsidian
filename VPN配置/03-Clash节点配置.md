@@ -1,7 +1,8 @@
 # Clash 节点配置
 
-**协议**: VLESS + TLS / VMess + WebSocket  
-**适用客户端**: Clash Verge (macOS/Windows), Clash for Android
+**协议**: VLESS + TLS / VLESS + WS + TLS  
+**适用客户端**: Clash Verge (macOS/Windows), Clash for Android  
+**最后更新**: 2026-02-15
 
 ---
 
@@ -26,7 +27,6 @@ http://172.245.19.104:8888/clash.yaml
   network: tcp
   tls: true
   servername: google.com
-  sni: google.com
   client-fingerprint: chrome
   skip-cert-verify: true
   alpn:
@@ -45,7 +45,6 @@ http://172.245.19.104:8888/clash.yaml
   network: tcp
   tls: true
   servername: cloudflare.com
-  sni: cloudflare.com
   client-fingerprint: chrome
   skip-cert-verify: true
   alpn:
@@ -64,7 +63,6 @@ http://172.245.19.104:8888/clash.yaml
   network: tcp
   tls: true
   servername: microsoft.com
-  sni: microsoft.com
   client-fingerprint: chrome
   skip-cert-verify: true
   alpn:
@@ -83,7 +81,6 @@ http://172.245.19.104:8888/clash.yaml
   network: tcp
   tls: true
   servername: apple.com
-  sni: apple.com
   client-fingerprint: safari
   skip-cert-verify: true
   alpn:
@@ -91,19 +88,23 @@ http://172.245.19.104:8888/clash.yaml
     - http/1.1
 ```
 
-### 5. WS-VMess-10000
+### 5. WS-TLS-12000
 
 ```yaml
-- name: "WS-VMess-10000"
-  type: vmess
+- name: "WS-TLS-12000"
+  type: vless
   server: 172.245.19.104
-  port: 10000
+  port: 12000
   uuid: cbf3b4be-b3a8-4f70-bd28-988e72f7d46d
-  alterId: 0
-  cipher: auto
   network: ws
-  ws-path: /v2ray
+  tls: true
+  servername: cloudflare.com
+  client-fingerprint: chrome
   skip-cert-verify: true
+  alpn:
+    - http/1.1
+  ws-opts:
+    path: /clash-ws
 ```
 
 ---
@@ -115,19 +116,18 @@ http://172.245.19.104:8888/clash.yaml
 | 参数 | 说明 |
 |------|------|
 | tls | 启用 TLS 加密 |
-| servername/sni | TLS 握手时的服务器名称 |
+| servername | TLS 握手时的服务器名称 |
 | client-fingerprint | 客户端 TLS 指纹 (chrome/safari) |
 | skip-cert-verify | 跳过证书验证 (自签名证书需要) |
 | alpn | ALPN 协议列表 |
 
-### WebSocket 节点参数
+### WebSocket + TLS 节点参数
 
 | 参数 | 说明 |
 |------|------|
 | network: ws | 使用 WebSocket 传输 |
-| ws-path | WebSocket 路径 |
-| cipher | 加密方式 (auto) |
-| alterId | VMess 备用 ID (建议设为 0) |
+| ws-opts.path | WebSocket 路径 (/clash-ws) |
+| tls: true | WebSocket 运行在 TLS 之上 |
 
 ---
 
@@ -150,16 +150,9 @@ http://172.245.19.104:8888/clash.yaml
 
 ---
 
-## 已知问题
+## 注意事项
 
-### cipher missing 错误
-
-如果在测试配置时出现 "key 'cipher' missing" 错误:
-- 确保 WebSocket 节点包含 `cipher: auto` 字段
-- 删除订阅缓存后重新添加
-
-### Microsoft 端口不通
-
-如果 TLS-2096 端口不通:
-- 可能是被防火墙阻断
-- 尝试使用其他端口 (2053, 10443, 12086)
+- 所有节点出站流量经 Cloudflare WARP 转发
+- 出口 IP 为 Cloudflare (104.28.209.x, AS13335)，非 RackNerd 数据中心 IP
+- WS+TLS 节点使用 VLESS 协议 (非旧版 VMess)，更安全更高效
+- 旧的 VMess WS 节点 (端口 10000) 已移除
